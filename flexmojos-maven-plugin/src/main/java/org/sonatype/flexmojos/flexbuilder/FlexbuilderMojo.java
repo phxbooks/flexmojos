@@ -311,7 +311,7 @@ public class FlexbuilderMojo
     protected FileSet[] includeAsClasses;
 
     /**
-     * This is the equilvalent of the <code>include-classes</code> option of the compc compiler.<BR>
+     * This is the equivalent of the <code>include-classes</code> option of the compc compiler.<BR>
      * Usage:
      * 
      * <pre>
@@ -325,7 +325,7 @@ public class FlexbuilderMojo
     protected String[] includeClasses;
 
     /**
-     * This is equilvalent to the <code>include-namespaces</code> option of the compc compiler.<BR>
+     * This is equivalent to the <code>include-namespaces</code> option of the compc compiler.<BR>
      * Usage:
      * 
      * <pre>
@@ -339,7 +339,7 @@ public class FlexbuilderMojo
     protected String[] includeNamespaces;
 
     /**
-     * This is the equilvalent of the <code>include-sources</code> option of the compc compiler.<BR>
+     * This is the equivalent of the <code>include-sources</code> option of the compc compiler.<BR>
      * Usage:
      * 
      * <pre>
@@ -351,7 +351,7 @@ public class FlexbuilderMojo
      * @parameter
      */
     protected File[] includeSources;
-
+    
     /**
      * This is equivalent to the <code>include-file</code> option of the compc compiler.<BR>
      * Usage:
@@ -1105,6 +1105,9 @@ public class FlexbuilderMojo
         // Locales need to be available in SWC projects so merge them in.
         context.put( "locales", getLocales() );
 
+        List<File> includedLibraries = getIncludedLibraries( ideDependencies );
+        context.put( "includeLibraries", includedLibraries );
+        
         if ( configFiles == null )
             configFiles = new ArrayList<File>();
 
@@ -1459,6 +1462,23 @@ public class FlexbuilderMojo
         return allThemes;
     }
 
+    private List<File> getIncludedLibraries( Collection<FbIdeDependency> deps )
+    {
+    	List<File> allIncludedLibraries = new ArrayList<File>();
+    	
+    	Iterator<FbIdeDependency> it = deps.iterator();
+    	while ( it.hasNext() )
+        {
+            FbIdeDependency dp = it.next();
+            if ( dp.getScope() != null && FlexScopes.INTERNAL.equals( dp.getScope() ) )
+            {
+            	allIncludedLibraries.add( dp.getFile() );
+            }
+        }
+    	
+    	return allIncludedLibraries;
+    }
+    
     protected void cleanDefinesDeclaration()
         throws MojoExecutionException
     {
