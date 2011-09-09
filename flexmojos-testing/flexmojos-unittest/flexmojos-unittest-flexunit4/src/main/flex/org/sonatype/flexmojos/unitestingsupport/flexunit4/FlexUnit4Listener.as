@@ -3,76 +3,122 @@
  */
 package org.sonatype.flexmojos.unitestingsupport.flexunit4
 {
-	import flex.lang.reflect.Klass;
-	
-	import org.flexunit.runner.Descriptor;
-	import org.flexunit.runner.FlexUnitCore;
-	import org.flexunit.runner.IDescription;
-	import org.flexunit.runner.Result;
-	import org.flexunit.runner.notification.Failure;
-	import org.flexunit.runner.notification.IRunListener;
-	import org.flexunit.runners.model.TestClass;
+    import flash.utils.getQualifiedClassName;
 
+    import flex.lang.reflect.Klass;
+    import flex.lang.reflect.metadata.MetaDataAnnotation;
+
+    import org.flexunit.runner.Descriptor;
+    import org.flexunit.runner.FlexUnitCore;
+    import org.flexunit.runner.IDescription;
+    import org.flexunit.runner.Result;
+    import org.flexunit.runner.notification.Failure;
+    import org.flexunit.runner.notification.IRunListener;
+    import org.flexunit.runners.Parameterized;
+    import org.flexunit.runners.model.TestClass;
+    import org.sonatype.flexmojos.test.report.ErrorReport;
     import org.sonatype.flexmojos.unitestingsupport.ITestApplication;
-	import org.sonatype.flexmojos.test.report.ErrorReport;
-	import org.sonatype.flexmojos.unitestingsupport.SocketReporter;
-	import org.sonatype.flexmojos.unitestingsupport.UnitTestRunner;
+    import org.sonatype.flexmojos.unitestingsupport.SocketReporter;
+    import org.sonatype.flexmojos.unitestingsupport.UnitTestRunner;
 
-	public class FlexUnit4Listener implements IRunListener, UnitTestRunner
+    public class FlexUnit4Listener implements IRunListener, UnitTestRunner
 	{
 		private var running:Boolean = false;
 
-		private var _socketReporter:SocketReporter;
+        private var _testCountUnknowablePriorToExecution:Boolean = false;
+        private var _socketReporter:SocketReporter;
+
 		
-		public function FlexUnit4Listener(socketReporter:SocketReporter=null) 
+		public function FlexUnit4Listener(socketReporter:SocketReporter = null, testCountUnknown:Boolean = false)
 		{
-			this._socketReporter = socketReporter;
+			_socketReporter = socketReporter;
+            _testCountUnknowablePriorToExecution = testCountUnknown;
 		}
-		
+
 		public function set socketReporter(socketReporter:SocketReporter):void {
-			 this._socketReporter = socketReporter;
+			 _socketReporter = socketReporter;
 		}
+
+        protected function get testCountUnknowablePriorToExecution():Boolean {
+            return _testCountUnknowablePriorToExecution;
+        }
+
+        protected function set testCountUnknowablePriorToExecution(unknowable:Boolean):void {
+            _testCountUnknowablePriorToExecution = unknowable;
+        }
 
         public function run( testApp:ITestApplication ):int
         {
             var tests:Array = testApp.tests;
+            var count:int = countAllTestCases(tests);
 
-			var listener:FlexUnit4Listener = new FlexUnit4Listener(_socketReporter);
+			var listener:FlexUnit4Listener = new FlexUnit4Listener(_socketReporter, testCountUnknowablePriorToExecution);
 			var flexUnitCore:FlexUnitCore = new FlexUnitCore();
-			
+
  			flexUnitCore.addListener( listener );
 
 			//This run statements executes the unit tests for the FlexUnit4 framework
  			var result:Result = flexUnitCore.run.apply( flexUnitCore, tests ); // The result seems to be always null
 
-			var count:int = 0;
-			for each (var test:Class in tests)
-			{
-				count += countTestCases(test);
-			}
-			return count;
+            return count;
 		}
+
+        private function countAllTestCases(tests:Array):int {
+            var count:int = 0;
+
+            for each (var test:Class in tests) {
+                count += countTestCases(test);
+            }
+
+            if (testCountUnknowablePriorToExecution)
+            {
+                count = int.MAX_VALUE;
+            }
+
+            return count;
+        }
 		
-		private static function countTestCases(test:Class):int
+		private function countTestCases(test:Class):int
 		{
 			var klassInfo:Klass = new Klass(test);
+            var count:int = 0;
 
-			if (klassInfo.hasMetaData("Suite"))
+            if (testCountUnknowablePriorToExecution
+                || parameterizedRunnerPresent(klassInfo))
+            {
+                testCountUnknowablePriorToExecution = true;
+            }
+			else if (klassInfo.hasMetaData("Suite"))
 			{
-				var suiteClasses:Array = getSuiteClasses(klassInfo);
-				var count:int = 0;
-				for each (var oneTest:Class in suiteClasses)
+				for each (var oneTest:Class in getSuiteClasses(klassInfo))
 				{
 					count += countTestCases(oneTest);
 				}
-				return count;
 			}
 			else
-			{ // It's a Test ?
-				var testMethods:Array = computeTestMethods(test);
-				return testMethods.length;			
+            { // It's a Test ?
+				count = computeTestMethods(test).length;
 			}
+
+            return count;
 		}
+
+        /**
+         * @return true if the test class is to be run with the Parameterized runnner
+         * i.e. RunWith("org.flexunit.runners.Parameterized") annotation present
+         */
+        private static function parameterizedRunnerPresent(klassInfo:Klass):Boolean {
+            var present:Boolean = false;
+            var runnerAnnotation:MetaDataAnnotation = klassInfo.getMetaData("RunWith");
+
+            if (runnerAnnotation)
+            {
+                present =  runnerAnnotation.defaultArgument.key ==
+                               getQualifiedClassName(Parameterized).replace("::", ".");
+            }
+
+            return present;
+        }
 		
 		/**
 		 * Returns the methods that run tests. Default implementation 
@@ -142,6 +188,11 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 		
 		public function testRunFinished( result:Result ):void
 		{
+            if (testCountUnknowablePriorToExecution)
+            {
+                _socketReporter.totalTestCount = _socketReporter.numTestsRun;
+            }
+
 			running = false;
 		}
 		
@@ -228,5 +279,6 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 
 			return descriptor;
 		}
-	}
+
+    }
 }
