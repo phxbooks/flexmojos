@@ -1,36 +1,20 @@
 /**
- *   Copyright 2008 Marvin Herman Froeder
- * -->
- * <!--
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * -->
- *
- * <!--
- *     http://www.apache.org/licenses/LICENSE-2.0
- * -->
- *
- * <!--
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
  *
  */
 package org.sonatype.flexmojos.unitestingsupport.flexunit4
 {
+	import flash.utils.getQualifiedClassName;
+
 	import flex.lang.reflect.Klass;
-	
+	import flex.lang.reflect.metadata.MetaDataAnnotation;
+
 	import org.flexunit.runner.Descriptor;
 	import org.flexunit.runner.FlexUnitCore;
 	import org.flexunit.runner.IDescription;
 	import org.flexunit.runner.Result;
 	import org.flexunit.runner.notification.Failure;
 	import org.flexunit.runner.notification.IRunListener;
+	import org.flexunit.runners.Parameterized;
 	import org.flexunit.runners.model.TestClass;
 	import org.sonatype.flexmojos.test.report.ErrorReport;
 	import org.sonatype.flexmojos.unitestingsupport.SocketReporter;
@@ -40,59 +24,99 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 	{
 		private var running:Boolean = false;
 
+		private var _testCountUnknowablePriorToExecution:Boolean = false;
 		private var _socketReporter:SocketReporter;
-		
-		public function FlexUnit4Listener(socketReporter:SocketReporter=null) 
+
+
+		public function FlexUnit4Listener(socketReporter:SocketReporter = null, testCountUnknown:Boolean = false)
 		{
-			this._socketReporter = socketReporter;
-		}
-		
-		public function set socketReporter(socketReporter:SocketReporter):void {
-			 this._socketReporter = socketReporter;
+			_socketReporter = socketReporter;
+			_testCountUnknowablePriorToExecution = testCountUnknown;
 		}
 
-		public function run(tests:Array):int
+		public function set socketReporter(socketReporter:SocketReporter):void {
+			 _socketReporter = socketReporter;
+		}
+
+		protected function get testCountUnknowablePriorToExecution():Boolean {
+			return _testCountUnknowablePriorToExecution;
+		}
+
+		public function run( tests:Array ):int
 		{
-			var listener:FlexUnit4Listener = new FlexUnit4Listener(_socketReporter);
+			var count:int = countAllTestCases(tests);
+
+			var listener:FlexUnit4Listener = new FlexUnit4Listener(_socketReporter, testCountIsUnknown(count));
 			var flexUnitCore:FlexUnitCore = new FlexUnitCore();
-			
- 			flexUnitCore.addListener( listener );
+
+			flexUnitCore.addListener( listener );
 
 			//This run statements executes the unit tests for the FlexUnit4 framework
- 			var result:Result = flexUnitCore.run.apply( flexUnitCore, tests ); // The result seems to be always null
+			var result:Result = flexUnitCore.run.apply( flexUnitCore, tests ); // The result seems to be always null
 
-			var count:int = 0;
-			for each (var test:Class in tests)
-			{
-				count += countTestCases(test);
-			}
 			return count;
 		}
-		
-		private static function countTestCases(test:Class):int
+
+		private function countAllTestCases(tests:Array):int {
+			var total:int = 0;
+
+			for each (var test:Class in tests) {
+				var testCount:int = countTestCases(test);
+
+				if (testCountIsUnknown(testCount))
+					return testCount;
+
+				total += testCount;
+			}
+
+			return total;
+		}
+
+		private function countTestCases(test:Class):int
 		{
 			var klassInfo:Klass = new Klass(test);
+			var count:int = 0;
 
-			if (klassInfo.hasMetaData("Suite"))
+			if (parameterizedRunnerPresent(klassInfo))
 			{
-				var suiteClasses:Array = getSuiteClasses(klassInfo);
-				var count:int = 0;
-				for each (var oneTest:Class in suiteClasses)
-				{
-					count += countTestCases(oneTest);
-				}
-				return count;
+				count = int.MAX_VALUE;
 			}
-			else
-			{ // It's a Test ?
-				var testMethods:Array = computeTestMethods(test);
-				return testMethods.length;			
+			else if (klassInfo.hasMetaData("Suite"))
+			{
+				count = countAllTestCases(getSuiteClasses(klassInfo));
 			}
+			else // It's a Test
+			{
+				count = computeTestMethods(test).length;
+			}
+
+			return count;
 		}
-		
+
+		private static function testCountIsUnknown(testCount:int):Boolean {
+			return testCount == int.MAX_VALUE;
+		}
+
 		/**
-		 * Returns the methods that run tests. Default implementation 
-		 * returns all methods annotated with {@code @Test} on this 
+		 * @return true if the test class is to be run with the Parameterized runnner
+		 * i.e. RunWith("org.flexunit.runners.Parameterized") annotation present
+		 */
+		private static function parameterizedRunnerPresent(klassInfo:Klass):Boolean {
+			var present:Boolean = false;
+			var runnerAnnotation:MetaDataAnnotation = klassInfo.getMetaData("RunWith");
+
+			if (runnerAnnotation)
+			{
+				present =  runnerAnnotation.defaultArgument.key ==
+							   getQualifiedClassName(Parameterized).replace("::", ".");
+			}
+
+			return present;
+		}
+
+		/**
+		 * Returns the methods that run tests. Default implementation
+		 * returns all methods annotated with {@code @Test} on this
 		 * class and superclasses that are not overridden.
 		 */
 		protected static function computeTestMethods(test:Class):Array
@@ -109,7 +133,7 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 					resultMethods.push(method);
 				}
 			}
-			
+
 			return resultMethods;
 		}
 
@@ -126,7 +150,7 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 					try
 					{
 						classRef = klassInfo.fields[i].type;
-						classArray.push(classRef); 
+						classArray.push(classRef);
 					}
 					catch ( e:Error )
 					{
@@ -136,13 +160,13 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 					}
 				}
 			}
-			
-			
+
+
 			/***
 			  <variable name="two" type="suite.cases::TestTwo"/>
 			  <variable name="one" type="suite.cases::TestOne"/>
 
-  			SuiteClasses annotation= klass.getAnnotation(SuiteClasses.class);
+			SuiteClasses annotation= klass.getAnnotation(SuiteClasses.class);
 			if (annotation == null)
 				throw new InitializationError(String.format("class '%s' must have a SuiteClasses annotation", klass.getName()));
 			return annotation.value();
@@ -155,22 +179,27 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 		{
 			running = true;
 		}
-		
+
 		public function testRunFinished( result:Result ):void
 		{
+			if (testCountUnknowablePriorToExecution)
+			{
+				_socketReporter.totalTestCount = _socketReporter.numTestsRun;
+			}
+
 			running = false;
 		}
-		
-    	/**
-    	 * Called when a Test starts.
-    	 */
+
+		/**
+		 * Called when a Test starts.
+		 */
 		public function testStarted( description:IDescription ):void
 		{
 			var descriptor:Descriptor = getDescriptorFromDescription(description);
 			_socketReporter.addMethod( descriptor.path + "." + descriptor.suite, descriptor.method );
 			trace("FlexUnit4: Test " + descriptor.method + " in " + descriptor.path + "." + descriptor.suite + " started");
 		}
-		
+
 		/**
 		 * Called when a Test ends.
 		 */
@@ -180,7 +209,7 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 			_socketReporter.testFinished(descriptor.path + "." + descriptor.suite);
 			trace("FlexUnit4: Test " + descriptor.method + " in " + descriptor.path + "." + descriptor.suite + " finished");
 		}
-		
+
 		/**
 		 * Called when a Failure occurs.
 		 */
@@ -210,20 +239,20 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 			_socketReporter.addFailure(descriptor.path + "." + descriptor.suite, descriptor.method, errorReport);
 			trace("FlexUnit4: Assumption Failure on Test " + descriptor.method + " in " + descriptor.path + "." + descriptor.suite);
 		}
-		
+
 		public function testIgnored( description:IDescription ):void
 		{
 			var descriptor:Descriptor = getDescriptorFromDescription(description);
 			trace("FlexUnit4: Test " + descriptor.method + " in " + descriptor.path + "." + descriptor.suite + " ignored");
 		}
-		
+
 		/* This method comes from the FlexUnit4UIRunner org.flexunit.flexui.data.TestRunnerBasePresentationModel class */
- 	    private function getDescriptorFromDescription(description:IDescription):Descriptor
- 	    {
+		private function getDescriptorFromDescription(description:IDescription):Descriptor
+		{
 			var descriptor:Descriptor = new Descriptor();
 			var descriptionArray:Array = description.displayName.split("::");
 			descriptor.path = descriptionArray[0];
-			
+
 			//This code was assuming things would be in a package, which is a good call, but it crashed
 			//badly on anything in the default package
 			//It also assumes that every test would be in a suite. Also not a valid assumption
@@ -233,7 +262,7 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 			{
 				classMethodArray = classMethod.split(".");
 			}
-			else 
+			else
 			{
 				classMethod =  descriptionArray[0];
 				classMethodArray = classMethod.split(".");
@@ -244,5 +273,6 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 
 			return descriptor;
 		}
+
 	}
 }
