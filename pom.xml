@@ -17,7 +17,7 @@
 
   <groupId>org.sonatype.flexmojos</groupId>
   <artifactId>flexmojos-aggregator</artifactId>
-  <version>3.9</version>
+  <version>3.9.1</version>
   <packaging>pom</packaging>
 
   <name>Flexmojos Aggregator</name>
@@ -32,8 +32,8 @@
 
   <properties>
     <!-- need due grid limitations  -->
-    <flexReleaseUrl>http://repository.sonatype.org/content/repositories/flexmojos-releases</flexReleaseUrl>
-    <flexSnapshotUrl>http://repository.sonatype.org/content/repositories/flexmojos-snapshots</flexSnapshotUrl>
+    <flexReleaseUrl>http://artifact.stage.shutterfly.com:8081/artifactory/libs-releases-local</flexReleaseUrl>
+    <flexSnapshotUrl>http://artifact.stage.shutterfly.com:8081/artifactory/libs-snapshots-local</flexSnapshotUrl>
     <flexSiteUrl>dav:https://sites.sonatype.org/flexmojos</flexSiteUrl>
   </properties>
 
