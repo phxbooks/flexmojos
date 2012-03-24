@@ -45,9 +45,9 @@ public class AbstractAsVmLauncherTest
         try
         {
             VALID_SWF = new TestRequest();
-            VALID_SWF.setSwf( new File( AsVmLauncherTest.class.getResource( "/SelftExit.swf" ).toURI() ) );
+            VALID_SWF.setFileUnderTest(new File(AsVmLauncherTest.class.getResource("/SelftExit.swf").toURI()));
             INVALID_SWF = new TestRequest();
-            INVALID_SWF.setSwf( new File( AsVmLauncherTest.class.getResource( "/NonExit.swf" ).toURI() ) );
+            INVALID_SWF.setFileUnderTest(new File(AsVmLauncherTest.class.getResource("/NonExit.swf").toURI()));
         }
         catch ( URISyntaxException e )
         {

@@ -44,8 +44,8 @@ public class InvalidPlayerTest
         throws Exception
     {
         TestRequest request = new TestRequest();
-        request.setSwf( VALID_SWF.getSwf() );
-        request.setFlashplayerCommand( "invalid_flash_player" );
+        request.setFileUnderTest(VALID_SWF.getFileUnderTest());
+        request.setTestCommand("invalid_flash_player");
 
         if ( launcher.useXvfb() )
         {

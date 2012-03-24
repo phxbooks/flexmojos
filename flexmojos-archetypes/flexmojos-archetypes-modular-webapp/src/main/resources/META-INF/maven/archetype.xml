@@ -39,7 +39,7 @@
   </resources>
   <!--
   <testSources>
-    <source>swf/src/test/flex/TestApp.as</source>
+    <source>fileUnderTest/src/test/flex/TestApp.as</source>
     <source>swc/src/test/flex/TestApp.as</source>
   </testSources>
   -->

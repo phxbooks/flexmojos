@@ -116,4 +116,12 @@ public class TestCaseReport
         throw new UnsupportedOperationException();
     }
 
+    public boolean hasProblems() {
+        return getProblems() > 0;
+    }
+
+    public int getProblems() {
+        return getErrors() + getFailures();
+    }
+
 }

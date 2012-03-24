@@ -27,7 +27,7 @@ public class TestRequest
 
     private int firstConnectionTimeout;
 
-    private File swf;
+    private File fileUnderTest;
 
     private int testControlPort;
 
@@ -35,7 +35,7 @@ public class TestRequest
 
     private int testTimeout;
 
-    private String flashplayerCommand;
+    private String testCommand;
 
     private boolean allowHeadlessMode = true;
 
@@ -47,9 +47,9 @@ public class TestRequest
         return firstConnectionTimeout;
     }
 
-    public File getSwf()
+    public File getFileUnderTest()
     {
-        return swf;
+        return fileUnderTest;
     }
 
     /**
@@ -84,9 +84,9 @@ public class TestRequest
         this.firstConnectionTimeout = firstConnectionTimeout;
     }
 
-    public void setSwf( File swf )
+    public void setFileUnderTest(File fileUnderTest)
     {
-        this.swf = swf;
+        this.fileUnderTest = fileUnderTest;
     }
 
     /**
@@ -113,14 +113,14 @@ public class TestRequest
         this.testTimeout = testTimeout;
     }
 
-    public String getFlashplayerCommand()
+    public String getTestCommand()
     {
-        return this.flashplayerCommand;
+        return this.testCommand;
     }
 
-    public void setFlashplayerCommand( String flashplayerCommand )
+    public void setTestCommand(String testCommand)
     {
-        this.flashplayerCommand = flashplayerCommand;
+        this.testCommand = testCommand;
     }
 
     public boolean getAllowHeadlessMode()

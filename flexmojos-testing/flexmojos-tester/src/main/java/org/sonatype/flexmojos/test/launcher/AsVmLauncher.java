@@ -55,7 +55,7 @@ public class AsVmLauncher
     /**
      * Run the SWF that contains the FlexUnit tests.
      * 
-     * @param targetSwf the SWF.
+     * @param request
      * @throws LaunchFlashPlayerException
      */
     public void start( TestRequest request )
@@ -68,7 +68,7 @@ public class AsVmLauncher
             throw new InvalidSwfException( "request is null" );
         }
 
-        File targetSwf = request.getSwf();
+        File targetSwf = request.getFileUnderTest();
 
         if ( targetSwf == null )
         {
@@ -80,7 +80,7 @@ public class AsVmLauncher
             throw new InvalidSwfException( "targetSwf not found " + targetSwf );
         }
 
-        this.flashplayerCommand = request.getFlashplayerCommand();
+        this.flashplayerCommand = request.getTestCommand();
         this.allowHeadlessMode = request.getAllowHeadlessMode();
 
         if ( flashplayerCommand == null || "${flashplayer.command}".equals( flashplayerCommand ) )

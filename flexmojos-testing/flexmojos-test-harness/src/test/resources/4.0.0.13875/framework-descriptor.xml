@@ -52,13 +52,13 @@
   <artifacts>
     <!-- rsls -->
 <!-- 
-datavisualization_4.0.0.13875.swf
-framework_4.0.0.13875.swf
-osmf_flex.4.0.0.13495.swf
-rpc_4.0.0.13875.swf
-sparkskins_4.0.0.13875.swf
-spark_4.0.0.13875.swf
-textLayout_1.0.0.594.swf
+datavisualization_4.0.0.13875.fileUnderTest
+framework_4.0.0.13875.fileUnderTest
+osmf_flex.4.0.0.13495.fileUnderTest
+rpc_4.0.0.13875.fileUnderTest
+sparkskins_4.0.0.13875.fileUnderTest
+spark_4.0.0.13875.fileUnderTest
+textLayout_1.0.0.594.fileUnderTest
  -->    
     <artifact>
       <artifactId>datavisualization</artifactId>

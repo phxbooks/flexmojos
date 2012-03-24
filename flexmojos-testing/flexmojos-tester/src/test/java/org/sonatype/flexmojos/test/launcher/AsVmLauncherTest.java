@@ -112,7 +112,7 @@ public class AsVmLauncherTest
         try
         {
             TestRequest request = new TestRequest();
-            request.setSwf( new File( "not_existing_swf_file.swf" ) );
+            request.setFileUnderTest(new File("not_existing_swf_file.swf"));
             launcher.start( request );
             fail();
         }

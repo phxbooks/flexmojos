@@ -49,18 +49,18 @@ public class DefaultTestRunner
     public List<String> run( TestRequest testRequest )
         throws TestRunnerException, LaunchFlashPlayerException
     {
-        File swf = testRequest.getSwf();
-        if ( swf == null )
+        File fileUnderTest = testRequest.getFileUnderTest();
+        if ( fileUnderTest == null )
         {
-            throw new TestRunnerException( "Target SWF not defined" );
+            throw new TestRunnerException( "Target file for test not defined: " + fileUnderTest);
         }
 
-        if ( !swf.isFile() )
+        if ( !fileUnderTest.isFile() )
         {
-            throw new TestRunnerException( "Target SWF not found " + swf );
+            throw new TestRunnerException( "Target file for test not found: " + fileUnderTest );
         }
 
-        getLogger().info( "Running tests " + swf );
+        getLogger().info( "Running tests " + fileUnderTest + " using " + testRequest.getTestCommand());
 
         try
         {
@@ -84,7 +84,7 @@ public class DefaultTestRunner
                 if ( hasError( launcher, pinger, resultHandler ) )
                 {
                     Throwable executionError = getError( launcher, pinger, resultHandler );
-                    throw new TestRunnerException( executionError.getMessage() + swf, executionError );
+                    throw new TestRunnerException( executionError.getMessage() + fileUnderTest, executionError );
                 }
 
                 if ( hasDone( launcher ) )
