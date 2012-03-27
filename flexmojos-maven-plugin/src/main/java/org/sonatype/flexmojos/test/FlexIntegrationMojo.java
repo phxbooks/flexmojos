@@ -15,21 +15,12 @@
  */
 package org.sonatype.flexmojos.test;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.util.DirectoryScanner;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.sonatype.flexmojos.AbstractIrvinMojo;
 import org.sonatype.flexmojos.test.launcher.LaunchFlashPlayerException;
-import org.sonatype.flexmojos.test.report.TestCaseReport;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.StringReader;
-import java.text.MessageFormat;
 import java.util.List;
 
 /**
@@ -88,12 +79,17 @@ public class FlexIntegrationMojo
         throws MojoExecutionException, MojoFailureException
     {
         getLog().info("Running " + getClass().getSimpleName());
+
+        if(!isIntegrationTestConfigured()) {
+          getLog().info("Skipping integration test; not configured");
+          return;
+        }
+
         try
         {
             TestRequest testRequest = new TestRequest();
             testRequest.setTestControlPort( testControlPort );
             testRequest.setTestPort(testPort);
-//                testRequest.setFileUnderTest(new File(testOutputDirectory, swfName));
             testRequest.setFileUnderTest(new File(testTargetURL));
             testRequest.setAllowHeadlessMode( allowHeadlessMode );
             testRequest.setTestCommand(browserCommand);
@@ -120,5 +116,13 @@ public class FlexIntegrationMojo
                 e);
         }
     }
+
+  private boolean isIntegrationTestConfigured() {
+    getLog().debug("browserCommand: " + browserCommand);
+    getLog().debug("testTargetURL: " + testTargetURL);
+
+    return StringUtils.trimToNull(browserCommand) != null
+        || StringUtils.trimToNull(testTargetURL) != null;
+  }
 
 }
