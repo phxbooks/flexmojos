@@ -21,6 +21,7 @@
 package org.sonatype.flexmojos.test;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 import org.codehaus.plexus.component.annotations.Component;
@@ -77,9 +78,12 @@ public class DefaultTestRunner
             // Wait until the tests are complete.
             while ( true )
             {
+                Date now = new Date();
+                getLogger().debug( "[MOJO] current time (" + now.getTime() + ") " + now);
                 getLogger().debug( "[MOJO] launcher " + launcher.getStatus() );
                 getLogger().debug( "[MOJO] pinger " + pinger.getStatus() );
                 getLogger().debug( "[MOJO] resultHandler " + resultHandler.getStatus() );
+                getLogger().debug( "[MOJO] ------------- " );
 
                 if ( hasError( launcher, pinger, resultHandler ) )
                 {

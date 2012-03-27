@@ -178,7 +178,9 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 		public function testRunStarted( description:IDescription ):void
 		{
 			running = true;
-		}
+
+      trace("FlexUnit4: Test run started");
+    }
 
 		public function testRunFinished( result:Result ):void
 		{
@@ -188,7 +190,9 @@ package org.sonatype.flexmojos.unitestingsupport.flexunit4
 			}
 
 			running = false;
-		}
+
+      trace("FlexUnit4: Test run finished");
+    }
 
 		/**
 		 * Called when a Test starts.

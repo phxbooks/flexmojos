@@ -120,12 +120,16 @@ public abstract class AbstractSocketThread
     protected void openClientSocket()
         throws SocketException, IOException, SocketTimeoutException
     {
+        long tStart = System.currentTimeMillis();
+        getLogger().debug("");
         // This method blocks until a connection is made.
         clientSocket = serverSocket.accept();
+        long tElapsed = System.currentTimeMillis() - tStart;
 
         // serverSocket.setSoTimeout( 0 );
 
-        getLogger().debug( "[" + this.getClass().getName() + "] accepting data from client" );
+        getLogger().debug( "[" + this.getClass().getName() +
+            "] accepting data from client; time to first accept " + tElapsed + "ms");
 
         status = ThreadStatus.RUNNING;
 

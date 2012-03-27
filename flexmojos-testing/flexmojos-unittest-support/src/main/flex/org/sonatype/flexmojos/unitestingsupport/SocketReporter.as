@@ -251,6 +251,8 @@ package org.sonatype.flexmojos.unitestingsupport
 				exit();
 			}
 
+      trace("Will attempt to instantiate " + def + " to listen for test execution");
+
 			var runner:UnitTestRunner=new def();
 			runner.socketReporter=this;
 			totalTestCount=runner.run(tests);
