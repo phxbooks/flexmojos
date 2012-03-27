@@ -48,7 +48,14 @@ public class FlexIntegrationMojo
      *
      * @parameter expression="${browser.command}"
      */
-    private String testTargetURL;
+    private String testTargetURL = null;
+
+    /**
+     * The test command (e.g. web browser) exits when the test completes.
+     *
+     * @parameter default-value="false" expression="${testCommandExitsWhenTestCompletes}"
+     */
+    protected boolean testCommandExitsWhenTestCompletes = false;
 
     /**
      * When true, allow flexmojos to launch xvfb-run to run test if it detects headless linux env
@@ -90,9 +97,10 @@ public class FlexIntegrationMojo
             TestRequest testRequest = new TestRequest();
             testRequest.setTestControlPort( testControlPort );
             testRequest.setTestPort(testPort);
-            testRequest.setFileUnderTest(new File(testTargetURL));
+            testRequest.setFileUnderTest(new File(getTestTargetURL()));
             testRequest.setAllowHeadlessMode( allowHeadlessMode );
-            testRequest.setTestCommand(browserCommand);
+            testRequest.setTestCommand(getBrowserCommand());
+            testRequest.setTestCommandExitsWhenTestCompletes(isTestCommandExitsWhenTestCompletes());
             testRequest.setTestTimeout( testTimeout );
             testRequest.setFirstConnectionTimeout( firstConnectionTimeout );
 
@@ -117,12 +125,31 @@ public class FlexIntegrationMojo
         }
     }
 
-  private boolean isIntegrationTestConfigured() {
-    getLog().debug("browserCommand: " + browserCommand);
-    getLog().debug("testTargetURL: " + testTargetURL);
+    protected boolean isIntegrationTestConfigured() {
+        getLog().debug("browserCommand: " + browserCommand);
+        getLog().debug("testTargetURL: " + testTargetURL + " null? " + (testTargetURL == null));
 
-    return StringUtils.trimToNull(browserCommand) != null
-        || StringUtils.trimToNull(testTargetURL) != null;
-  }
+        return StringUtils.trimToNull(browserCommand) != null
+            && StringUtils.trimToNull(testTargetURL) != null;
+    }
 
+    public boolean isTestCommandExitsWhenTestCompletes() {
+      return testCommandExitsWhenTestCompletes;
+    }
+
+    public String getBrowserCommand() {
+      return browserCommand;
+    }
+
+    public void setBrowserCommand(String browserCommand) {
+      this.browserCommand = browserCommand;
+    }
+
+    public String getTestTargetURL() {
+      return testTargetURL;
+    }
+
+    public void setTestTargetURL(String testTargetURL) {
+      this.testTargetURL = testTargetURL;
+    }
 }

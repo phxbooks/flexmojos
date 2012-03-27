@@ -39,6 +39,8 @@ public class TestRequest
 
     private boolean allowHeadlessMode = true;
 
+    private boolean testCommandExitsWhenTestCompletes = true;
+
     /**
      * @return the firstConnectionTimeout
      */
@@ -131,5 +133,13 @@ public class TestRequest
     public void setAllowHeadlessMode( boolean allowHeadlessMode )
     {
         this.allowHeadlessMode = allowHeadlessMode;
+    }
+
+    public boolean isTestCommandExitsWhenTestCompletes() {
+      return testCommandExitsWhenTestCompletes;
+    }
+
+    public void setTestCommandExitsWhenTestCompletes(boolean testCommandExitsWhenTestCompletes) {
+      this.testCommandExitsWhenTestCompletes = testCommandExitsWhenTestCompletes;
     }
 }

@@ -63,6 +63,13 @@ public class FlexUnitMojo
      */
     private String flashPlayerCommand;
 
+    /**
+     * The test command (e.g. Flash Player) exits when the test completes.
+     *
+     * @parameter default-value="true" expression="${testCommandExitsWhenTestCompletes}"
+     */
+    protected boolean testCommandExitsWhenTestCompletes = true;
+
 
     private int time;
 
@@ -111,6 +118,7 @@ public class FlexUnitMojo
                 testRequest.setFileUnderTest(new File(testOutputDirectory, swfName));
                 testRequest.setAllowHeadlessMode( allowHeadlessMode );
                 testRequest.setTestCommand(flashPlayerCommand);
+                testRequest.setTestCommandExitsWhenTestCompletes(testCommandExitsWhenTestCompletes);
                 testRequest.setTestTimeout( testTimeout );
                 testRequest.setFirstConnectionTimeout( firstConnectionTimeout );
 

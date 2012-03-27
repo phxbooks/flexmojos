@@ -91,21 +91,33 @@ public class DefaultTestRunner
                     throw new TestRunnerException( executionError.getMessage() + fileUnderTest, executionError );
                 }
 
-                if ( hasDone( launcher ) )
-                {
-                    for ( int i = 0; i < 3; i++ )
+                if ( testRequest.isTestCommandExitsWhenTestCompletes() ) {
+                    if ( hasDone( launcher ) )
                     {
+                      for ( int i = 0; i < 3; i++ )
+                      {
                         if ( hasDone( resultHandler ) && hasDone( pinger ) )
                         {
-                            List<String> results = resultHandler.getTestReportData();
-                            return results; // expected exit!
+                          List<String> results = resultHandler.getTestReportData();
+                          return results; // expected exit!
                         }
                         sleep( 500 );
-                    }
+                      }
 
-                    // the flashplayer is closed, but the sockets still running...
-                    throw new TestRunnerException(
-                                                   "Invalid state: the flashplayer is closed, but the sockets still running..." );
+                      // the flashplayer is closed, but the sockets still running...
+                      throw new TestRunnerException(
+                          "Invalid state: the flashplayer is closed, but the sockets still running..." );
+                    }
+                } else {
+
+                  if ( hasDone( resultHandler ) && hasDone( pinger ) )
+                  {
+                    List<String> results = resultHandler.getTestReportData();
+                    return results; // expected exit!
+                  }
+
+                  sleep( 500 );
+
                 }
 
                 sleep( 1000 );

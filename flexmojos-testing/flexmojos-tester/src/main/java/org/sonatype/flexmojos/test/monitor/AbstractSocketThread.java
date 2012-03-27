@@ -120,8 +120,9 @@ public abstract class AbstractSocketThread
     protected void openClientSocket()
         throws SocketException, IOException, SocketTimeoutException
     {
+        getLogger().debug("Opening server socket for accept on port: " + serverSocket.getLocalPort());
+
         long tStart = System.currentTimeMillis();
-        getLogger().debug("");
         // This method blocks until a connection is made.
         clientSocket = serverSocket.accept();
         long tElapsed = System.currentTimeMillis() - tStart;
