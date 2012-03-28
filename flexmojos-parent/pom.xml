@@ -17,7 +17,7 @@
 
   <groupId>org.sonatype.flexmojos</groupId>
   <artifactId>flexmojos-parent</artifactId>
-  <version>3.9.1</version>
+  <version>3.9.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Flexmojos Parent</name>
@@ -151,6 +151,11 @@
           <artifactId>animal-sniffer</artifactId>
           <version>1.2</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.2.2</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -201,6 +206,12 @@
         <version>${tycho-version}</version>
         <extensions>true</extensions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -243,9 +254,9 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:git:git://github.com/Flexmojos/flexmojos.git</connection>
-    <developerConnection>scm:git:git@github.com:Flexmojos/flexmojos.git</developerConnection>
-    <url>http://github.com/Flexmojos/flexmojos</url>
+    <connection>scm:git:git://github.com/phxbooks/flexmojos.git</connection>
+    <developerConnection>scm:git:git@github.com:phxbooks/flexmojos.git</developerConnection>
+    <url>http://github.com/phxbooks/flexmojos</url>
   </scm>
 
   <distributionManagement>
