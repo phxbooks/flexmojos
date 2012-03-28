@@ -38,9 +38,9 @@
   </properties>
 
   <scm>
-    <connection>scm:git:git://github.com/Flexmojos/flexmojos.git</connection>
-    <developerConnection>scm:git:git@github.com:Flexmojos/flexmojos.git</developerConnection>
-    <url>http://github.com/Flexmojos/flexmojos</url>
+    <connection>scm:git:git://github.com/phxbooks/flexmojos.git</connection>
+    <developerConnection>scm:git:git@github.com:phxbooks/flexmojos.git</developerConnection>
+    <url>http://github.com/phxbooks/flexmojos</url>
   </scm>
 
   <distributionManagement>
