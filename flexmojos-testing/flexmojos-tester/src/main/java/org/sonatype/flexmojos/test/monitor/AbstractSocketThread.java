@@ -92,6 +92,10 @@ public abstract class AbstractSocketThread
     private void openServerSocket()
         throws IOException
     {
+        getLogger().info(getClass().getCanonicalName() + " serverSocket configuration:"
+            + " testPort: " + getTestPort()
+            + " firstConnectionTimeout: " + getFirstConnectionTimeout());
+
         serverSocket = new ServerSocket( getTestPort() );
         serverSocket.setSoTimeout( getFirstConnectionTimeout() );
 

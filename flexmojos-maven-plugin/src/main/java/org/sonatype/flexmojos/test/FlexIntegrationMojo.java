@@ -18,6 +18,7 @@ package org.sonatype.flexmojos.test;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.sonatype.flexmojos.test.launcher.LaunchFlashPlayerException;
 
 import java.io.File;
@@ -98,11 +99,13 @@ public class FlexIntegrationMojo
             testRequest.setTestControlPort( testControlPort );
             testRequest.setTestPort(testPort);
             testRequest.setFileUnderTest(new File(getTestTargetURL()));
-            testRequest.setAllowHeadlessMode( allowHeadlessMode );
+            testRequest.setAllowHeadlessMode(allowHeadlessMode);
             testRequest.setTestCommand(getBrowserCommand());
             testRequest.setTestCommandExitsWhenTestCompletes(isTestCommandExitsWhenTestCompletes());
-            testRequest.setTestTimeout( testTimeout );
+            testRequest.setTestTimeout(testTimeout);
             testRequest.setFirstConnectionTimeout( firstConnectionTimeout );
+            getLog().info("testRequest configured with firstConnectionTimeout: " +
+                testRequest.getFirstConnectionTimeout());
 
             List<String> results = testRunner.run( testRequest );
             for ( String result : results )

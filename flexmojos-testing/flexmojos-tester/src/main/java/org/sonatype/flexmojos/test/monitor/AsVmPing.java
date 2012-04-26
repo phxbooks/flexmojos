@@ -33,6 +33,7 @@ import java.net.SocketTimeoutException;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Configuration;
+import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.flexmojos.test.ThreadStatus;
 
@@ -135,6 +136,12 @@ public class AsVmPing
         this.testControlPort = testControlPort;
         this.firstConnectionTimeout = firstConnectionTimeout;
         this.testTimeout = testTimeout;
+
+        getLogger().info("AsVmPing configuration:"
+            + " testControlPort: " + testControlPort
+            + " firstConnectionTimeout: " + firstConnectionTimeout
+            + " testTimeout: " + testTimeout);
+
         launch();
     }
 
