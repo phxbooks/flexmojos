@@ -104,8 +104,6 @@ public class FlexIntegrationMojo
             testRequest.setTestCommandExitsWhenTestCompletes(isTestCommandExitsWhenTestCompletes());
             testRequest.setTestTimeout(testTimeout);
             testRequest.setFirstConnectionTimeout( firstConnectionTimeout );
-            getLog().info("testRequest configured with firstConnectionTimeout: " +
-                testRequest.getFirstConnectionTimeout());
 
             List<String> results = testRunner.run( testRequest );
             for ( String result : results )

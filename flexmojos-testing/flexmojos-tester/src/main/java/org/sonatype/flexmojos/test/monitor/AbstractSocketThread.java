@@ -92,7 +92,7 @@ public abstract class AbstractSocketThread
     private void openServerSocket()
         throws IOException
     {
-        getLogger().info(getClass().getCanonicalName() + " serverSocket configuration:"
+        getLogger().debug(getClass().getCanonicalName() + " serverSocket configuration:"
             + " testPort: " + getTestPort()
             + " firstConnectionTimeout: " + getFirstConnectionTimeout());
 

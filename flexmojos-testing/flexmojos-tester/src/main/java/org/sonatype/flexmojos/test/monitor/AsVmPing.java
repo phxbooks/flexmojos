@@ -137,7 +137,7 @@ public class AsVmPing
         this.firstConnectionTimeout = firstConnectionTimeout;
         this.testTimeout = testTimeout;
 
-        getLogger().info("AsVmPing configuration:"
+        getLogger().debug("AsVmPing configuration:"
             + " testControlPort: " + testControlPort
             + " firstConnectionTimeout: " + firstConnectionTimeout
             + " testTimeout: " + testTimeout);
