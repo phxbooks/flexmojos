@@ -28,7 +28,7 @@ import java.util.List;
  * Goal to run integration tests for Flex applications, hosted in a web browser
  * 
  * @author Stephen Kuenzli (skuenzli@shutterfly.com)
- * @since 3.9.3-SNAPSHOT
+ * @since 3.9.2
  * @goal integration-test
  * @requiresDependencyResolution
  * @phase integration-test
