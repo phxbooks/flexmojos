@@ -15,13 +15,15 @@
  */
 package org.sonatype.flexmojos.test;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.sonatype.flexmojos.test.launcher.LaunchFlashPlayerException;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -86,43 +88,75 @@ public class FlexIntegrationMojo
     protected void run()
         throws MojoExecutionException, MojoFailureException
     {
+        if(!isIntegrationTestConfigured()) {
+            getLog().info("Skipping integration test; not configured");
+            return;
+        }
+        runTests(prepareToRunTests());
+    }
+
+    private List<String> prepareToRunTests() {
+        final List<String> testsToRun = new ArrayList<String>();
+        testsToRun.add("{\"functionalTestClassName\":\"\",\"parameters\":null}"); //for now run all
+        //testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.sanity::BasicSanityTest\",\"parameters\":null}");
+//        testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.fastFunctional::FastFunctionalOne\",\"parameters\":null}");
+//        testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.fastFunctional::FastFunctionalTwo\",\"parameters\":null}");
+        return testsToRun;
+    }
+
+    private void runTests(List<String> testConfigs) throws MojoExecutionException {
         getLog().info("Running " + getClass().getSimpleName());
 
-        if(!isIntegrationTestConfigured()) {
-          getLog().info("Skipping integration test; not configured");
-          return;
-        }
-
-        try
-        {
-            TestRequest testRequest = new TestRequest();
-            testRequest.setTestControlPort( testControlPort );
-            testRequest.setTestPort(testPort);
-            testRequest.setFileUnderTest(new File(getTestTargetURL()));
-            testRequest.setAllowHeadlessMode(allowHeadlessMode);
-            testRequest.setTestCommand(getBrowserCommand());
-            testRequest.setTestCommandExitsWhenTestCompletes(isTestCommandExitsWhenTestCompletes());
-            testRequest.setTestTimeout(testTimeout);
-            testRequest.setFirstConnectionTimeout( firstConnectionTimeout );
-
-            List<String> results = testRunner.run( testRequest );
-            for ( String result : results )
+        for(String testToRun : testConfigs){
+            try{
+                runTest(testToRun);
+            }
+            catch ( TestRunnerException e )
             {
-                writeTestReport( result );
+                executionError = e;
+            }
+            catch( LaunchFlashPlayerException e ){
+                throw new MojoExecutionException(
+                    "Failed to launch browser.  Java probably could not find (" +
+                        browserCommand + ")." +
+                        "\n\t\tMake sure browser is available on PATH" +
+                        "\n\t\tor use -Dbrowser.command=${browser executable}",
+                    e);
+            }
+            catch( Exception e ){
+                throw new MojoExecutionException(
+                    "Failed to launch test.",
+                    e);
             }
         }
-        catch ( TestRunnerException e )
+    }
+
+    private void runTest(String testConfig) throws TestRunnerException,
+        LaunchFlashPlayerException, MojoExecutionException, IOException {
+        writeTestToRunFile(testConfig);
+        launchTest();
+    }
+
+    private void writeTestToRunFile(String testConfig) throws IOException {
+        FileUtils.writeStringToFile(new File(project.getBuild().getDirectory(),"testConfig.js"),
+            "var testConfig = " + testConfig + ";");
+    }
+
+    private void launchTest() throws TestRunnerException, LaunchFlashPlayerException, MojoExecutionException {
+        TestRequest testRequest = new TestRequest();
+        testRequest.setTestControlPort(testControlPort);
+        testRequest.setTestPort(testPort);
+        testRequest.setFileUnderTest(new File(getTestTargetURL()));
+        testRequest.setAllowHeadlessMode(allowHeadlessMode);
+        testRequest.setTestCommand(getBrowserCommand());
+        testRequest.setTestCommandExitsWhenTestCompletes(isTestCommandExitsWhenTestCompletes());
+        testRequest.setTestTimeout(testTimeout);
+        testRequest.setFirstConnectionTimeout(firstConnectionTimeout);
+
+        List<String> results = testRunner.run( testRequest );
+        for ( String result : results )
         {
-            executionError = e;
-        }
-        catch ( LaunchFlashPlayerException e )
-        {
-            throw new MojoExecutionException(
-                "Failed to launch browser.  Java probably could not find (" +
-                    browserCommand + ")." +
-                    "\n\t\tMake sure browser is available on PATH" +
-                    "\n\t\tor use -Dbrowser.command=${browser executable}",
-                e);
+            writeTestReport( result );
         }
     }
 
