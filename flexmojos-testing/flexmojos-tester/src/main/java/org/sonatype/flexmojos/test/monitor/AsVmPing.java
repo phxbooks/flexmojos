@@ -20,22 +20,23 @@
  */
 package org.sonatype.flexmojos.test.monitor;
 
-import static org.sonatype.flexmojos.test.monitor.CommConstraints.EOL;
-import static org.sonatype.flexmojos.test.monitor.CommConstraints.FINISHED;
-import static org.sonatype.flexmojos.test.monitor.CommConstraints.OK;
-import static org.sonatype.flexmojos.test.monitor.CommConstraints.STATUS;
-
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Configuration;
-import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.flexmojos.test.ThreadStatus;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import static org.sonatype.flexmojos.test.monitor.CommConstraints.*;
 
 /**
  * This class will ping Action Script virtual machine to make sure if the application still running
@@ -52,10 +53,12 @@ public class AsVmPing
     private int firstConnectionTimeout;
 
     private int testTimeout;
+    private Document testSuites;
+
 
     @Override
     protected void handleRequest()
-        throws SocketTimeoutException, SocketException, IOException
+        throws IOException
     {
         getLogger().debug( "[CONTROL] AsVmControl handleRequest" );
 
@@ -73,9 +76,12 @@ public class AsVmPing
                 getLogger().debug( "[CONTROL] received status" );
                 BufferedReader in = new BufferedReader( new InputStreamReader( super.in ) );
                 String result = in.readLine();
-                getLogger().debug( "[CONTROL] status is: " + result );
-                if ( !OK.equals( result ) && !FINISHED.equals( result ) )
+                getLogger().debug( "[CONTROL] status is: '" + result + "'");
+                if ( !OK.equals( result )
+                    && !FINISHED.equals( result )
+                    && !TEST_SUITE_LIST.equals( result ))
                 {
+                    getLogger().debug("encountered error status: " + result);
                     errorCount++;
                     if ( errorCount >= 3 )
                     {
@@ -85,6 +91,25 @@ public class AsVmPing
                         return;
                     }
                 }
+                else if (TEST_SUITE_LIST.equals(result))
+                {
+                    getLogger().debug( "Reading test suites" );
+
+                    StringBuilder testListBuilder = new StringBuilder();
+                    String line;
+                    do
+                    {
+                        line = in.readLine();
+                        getLogger().debug("read: " + line);
+                        testListBuilder.append(line);
+                    } while (!line.endsWith(END_OF_TEST_SUITES));
+
+                    String testSuitesXmlStr = testListBuilder.toString();
+                    getLogger().debug( "testSuitesXmlStr: " + testSuitesXmlStr );
+                    testSuites = convertToDocument(testListBuilder.toString());
+                    getLogger().debug( "testSuites.toString(): " + testSuites.toString());
+                }
+
                 else if ( FINISHED.equals( result ) )
                 {
                     getLogger().debug( "[CONTROL] FINISHED received, terminating the thread" );
@@ -130,6 +155,16 @@ public class AsVmPing
         }
     }
 
+    private Document convertToDocument(String xml) {
+        try {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            return documentBuilder.parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void start(int testControlPort, int firstConnectionTimeout, int testTimeout)
     {
         reset();
@@ -157,4 +192,7 @@ public class AsVmPing
         return firstConnectionTimeout;
     }
 
+    public Document getTestSuites() {
+        return testSuites;
+    }
 }

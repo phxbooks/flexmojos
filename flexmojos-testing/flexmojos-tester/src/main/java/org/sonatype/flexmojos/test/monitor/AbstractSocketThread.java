@@ -87,7 +87,7 @@ public abstract class AbstractSocketThread
     }
 
     protected abstract void handleRequest()
-        throws SocketTimeoutException, SocketException, IOException;
+        throws IOException;
 
     private void openServerSocket()
         throws IOException

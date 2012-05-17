@@ -20,21 +20,16 @@
  */
 package org.sonatype.flexmojos.test.monitor;
 
-import static org.sonatype.flexmojos.test.monitor.CommConstraints.ACK_OF_TEST_RESULT;
-import static org.sonatype.flexmojos.test.monitor.CommConstraints.END_OF_TEST_RUN;
-import static org.sonatype.flexmojos.test.monitor.CommConstraints.END_OF_TEST_SUITE;
-import static org.sonatype.flexmojos.test.monitor.CommConstraints.NULL_BYTE;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Configuration;
 import org.sonatype.flexmojos.test.ControlledThread;
+
+import static org.sonatype.flexmojos.test.monitor.CommConstraints.*;
 
 /**
  * Create a server socket for receiving the test reports from FlexUnit. We read the test reports inside of a Thread.
@@ -56,7 +51,7 @@ public class ResultHandler
     }
 
     protected void handleRequest()
-        throws SocketException, IOException
+        throws IOException
     {
         StringBuffer buffer = new StringBuffer();
         int bite = -1;
@@ -68,7 +63,7 @@ public class ResultHandler
             if ( chr == NULL_BYTE )
             {
                 final String data = buffer.toString();
-                getLogger().debug( "[RESULT] Recivied data: " + data );
+                getLogger().debug( "[RESULT] Received data: " + data );
                 buffer = new StringBuffer();
 
                 if ( data.endsWith( END_OF_TEST_SUITE ) )

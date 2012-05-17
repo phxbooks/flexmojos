@@ -25,6 +25,8 @@ public class CommConstraints
 
     public static final String END_OF_TEST_RUN = "<endOfTestRun/>";
 
+    public static final String END_OF_TEST_SUITES = "</tests>";
+
     public static final String END_OF_TEST_SUITE = "</testsuite>";
 
     public static final String ACK_OF_TEST_RESULT = "<endOfTestRunAck/>";
@@ -34,6 +36,8 @@ public class CommConstraints
     public static final String STATUS = "Server Status";
 
     public static final String OK = "OK";
+
+    public static final String TEST_SUITE_LIST="TEST SUITE LIST";
 
     public static final String FINISHED = "FINISHED";
 
