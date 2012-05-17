@@ -20,7 +20,6 @@
  */
 package org.sonatype.flexmojos.unitestingsupport
 {
-	import flash.events.DataEvent;
 	import flash.events.Event;
 	import flash.events.ProgressEvent;
 	import flash.net.Socket;
@@ -82,8 +81,20 @@ package org.sonatype.flexmojos.unitestingsupport
 				
    			}
 		}
-		
-		private static var instance:ControlSocket;
+
+        public function sendMessage(xml:XML):void {
+            if (xml) {
+                var xmlStr:String = CommConstraints.TEST_SUITE_LIST + "\n"
+                        + "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+                        + xml.toXMLString();
+                socket.writeUTFBytes(xmlStr + CommConstraints.EOL);
+                socket.flush();
+                trace("ControlSocket.sendMessage wrote and flushed:\n" + xmlStr);
+            }
+        }
+
+
+        private static var instance:ControlSocket;
 		
 		public static function getInstance():ControlSocket {
 			if(instance == null) {
