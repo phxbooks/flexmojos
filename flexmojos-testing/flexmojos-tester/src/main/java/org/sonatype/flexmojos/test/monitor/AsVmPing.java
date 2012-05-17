@@ -79,7 +79,7 @@ public class AsVmPing
                 getLogger().debug( "[CONTROL] status is: '" + result + "'");
                 if ( !OK.equals( result )
                     && !FINISHED.equals( result )
-                    && !TEST_SUITE_LIST.equals( result ))
+                    && !TEST_SPEC_LIST.equals( result ))
                 {
                     getLogger().debug("encountered error status: " + result);
                     errorCount++;
@@ -91,7 +91,7 @@ public class AsVmPing
                         return;
                     }
                 }
-                else if (TEST_SUITE_LIST.equals(result))
+                else if (TEST_SPEC_LIST.equals(result))
                 {
                     getLogger().debug( "Reading test suites" );
 
@@ -102,7 +102,7 @@ public class AsVmPing
                         line = in.readLine();
                         getLogger().debug("read: " + line);
                         testListBuilder.append(line);
-                    } while (!line.endsWith(END_OF_TEST_SUITES));
+                    } while (!line.endsWith(END_OF_TEST_SPECS));
 
                     String testSuitesXmlStr = testListBuilder.toString();
                     getLogger().debug( "testSuitesXmlStr: " + testSuitesXmlStr );

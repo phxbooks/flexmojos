@@ -82,9 +82,9 @@ package org.sonatype.flexmojos.unitestingsupport
    			}
 		}
 
-        public function sendMessage(xml:XML):void {
+        public function sendMessage(controlKeyword:String,  xml:XML):void {
             if (xml) {
-                var xmlStr:String = CommConstraints.TEST_SUITE_LIST + "\n"
+                var xmlStr:String = controlKeyword + "\n"
                         + "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
                         + xml.toXMLString();
                 socket.writeUTFBytes(xmlStr + CommConstraints.EOL);
