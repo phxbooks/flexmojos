@@ -80,6 +80,9 @@ public class FlexIntegrationMojo
      */
     private TestRunner testRunner;
 
+    private static final String EXECUTE_TEST_COMMAND = "EXECUTE_TEST";
+    private static final String EXECUTE_ALL_TESTS_COMMAND = "EXECUTE_ALL_TESTS";
+
     /**
      * Create a server socket for receiving the test reports from FlexUnit. We read the test reports inside of a Thread.
      */
@@ -92,6 +95,8 @@ public class FlexIntegrationMojo
             getLog().info("Skipping integration test; not configured");
             return;
         }
+
+        //runTest(getListTestsConfig()); //TODO soon -VITO
         runTests(prepareToRunTests());
     }
 
@@ -99,8 +104,8 @@ public class FlexIntegrationMojo
         final List<String> testsToRun = new ArrayList<String>();
         testsToRun.add("{\"functionalTestClassName\":\"\",\"parameters\":null}"); //for now run all
         //testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.sanity::BasicSanityTest\",\"parameters\":null}");
-//        testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.fastFunctional::FastFunctionalOne\",\"parameters\":null}");
-//        testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.fastFunctional::FastFunctionalTwo\",\"parameters\":null}");
+        //        testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.fastFunctional::FastFunctionalOne\",\"parameters\":null}");
+        //        testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.fastFunctional::FastFunctionalTwo\",\"parameters\":null}");
         return testsToRun;
     }
 
@@ -133,13 +138,14 @@ public class FlexIntegrationMojo
 
     private void runTest(String testConfig) throws TestRunnerException,
         LaunchFlashPlayerException, MojoExecutionException, IOException {
-        writeTestToRunFile(testConfig);
+        writeTestToRunFile(testConfig, EXECUTE_ALL_TESTS_COMMAND);
         launchTest();
     }
 
-    private void writeTestToRunFile(String testConfig) throws IOException {
-        FileUtils.writeStringToFile(new File(project.getBuild().getDirectory(),"testConfig.js"),
-            "var testConfig = " + testConfig + ";");
+    private void writeTestToRunFile(String testConfig, String testCommand) throws IOException {
+        String config = "var functionalTestConfig = " + testConfig + ";\n";
+        config += "var functionalTestCommand = \"" + testCommand + "\";\n";
+        FileUtils.writeStringToFile(new File(project.getBuild().getDirectory(),"functionalTestConfig.js"), config);
     }
 
     private void launchTest() throws TestRunnerException, LaunchFlashPlayerException, MojoExecutionException {
