@@ -276,6 +276,13 @@ public class AsVmLauncher
                     status = ThreadStatus.DONE;
                     return;
                 }
+            case 143:
+            {
+                errorMessage = "A problem was encountered early in test start-up on the flashplayer side, " +
+                    "preventing communication setup between the maven and flashplayer flexmojos components. " +
+                    "Please check your flashlog.txt for a stacktrace.";
+                break;
+            }
             default:
                 errorMessage = "Unexpected return code " + returnCode;
         }
