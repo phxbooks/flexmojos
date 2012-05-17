@@ -82,14 +82,24 @@ package org.sonatype.flexmojos.unitestingsupport
    			}
 		}
 
-        public function sendMessage(controlKeyword:String,  xml:XML):void {
-            if (xml) {
-                var xmlStr:String = controlKeyword + "\n"
-                        + "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
-                        + xml.toXMLString();
-                socket.writeUTFBytes(xmlStr + CommConstraints.EOL);
+        /**
+         * Send an message to the control socket; supports an optional xml payload which will
+         * appear on the line after the control keyword.
+         *
+         * @param controlKeyword
+         * @param xml
+         */
+        public function sendMessage(controlKeyword:String,  xml:XML=null):void {
+            if(controlKeyword) {
+                var msg:String = controlKeyword
+                if (xml) {
+                    msg = msg + "\n"
+                            + "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+                            + xml.toXMLString();
+                }
+                socket.writeUTFBytes(msg + CommConstraints.EOL);
                 socket.flush();
-                trace("ControlSocket.sendMessage wrote and flushed:\n" + xmlStr);
+                trace("ControlSocket.sendMessage wrote and flushed:\n" + msg);
             }
         }
 
