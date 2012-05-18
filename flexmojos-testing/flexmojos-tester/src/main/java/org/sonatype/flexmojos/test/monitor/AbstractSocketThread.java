@@ -47,6 +47,8 @@ public abstract class AbstractSocketThread
 
     public int testPort;
 
+    private boolean shouldTearDownAfterRun = true;
+
     public AbstractSocketThread()
     {
         super();
@@ -54,6 +56,10 @@ public abstract class AbstractSocketThread
 
     public void run()
     {
+        getLogger().debug(getClass() + " run start");
+
+        status = null;
+
         try
         {
             openServerSocket();
@@ -80,10 +86,23 @@ public abstract class AbstractSocketThread
         }
         finally
         {
-            // always stop the server loop
             closeClientSocket();
-            closeServerSocket();
+            if(shouldTearDownServerSocketAfterRun()){
+                tearDownServerSocket();
+            }
         }
+    }
+
+    public void tearDownServerSocket(){
+        closeServerSocket();
+    }
+
+    public boolean shouldTearDownServerSocketAfterRun(){
+        return shouldTearDownAfterRun;
+    }
+
+    public void setShouldTearDownAfterRun(boolean shouldTearDownAfterRun){
+        this.shouldTearDownAfterRun = shouldTearDownAfterRun;
     }
 
     protected abstract void handleRequest()
@@ -92,14 +111,19 @@ public abstract class AbstractSocketThread
     private void openServerSocket()
         throws IOException
     {
-        getLogger().debug(getClass().getCanonicalName() + " serverSocket configuration:"
-            + " testPort: " + getTestPort()
-            + " firstConnectionTimeout: " + getFirstConnectionTimeout());
+        if (serverSocket == null) {
+            getLogger().debug(getClass().getCanonicalName() + " attempting to open serverSocket configuration:"
+                + " testPort: " + getTestPort()
+                + " firstConnectionTimeout: " + getFirstConnectionTimeout());
 
-        serverSocket = new ServerSocket( getTestPort() );
-        serverSocket.setSoTimeout( getFirstConnectionTimeout() );
+            serverSocket = new ServerSocket( getTestPort() );
+            serverSocket.setSoTimeout( getFirstConnectionTimeout() );
 
-        getLogger().debug( "[" + this.getClass().getName() + "] opened server socket on port " + getTestPort() );
+            getLogger().debug("[" + this.getClass().getName() + "] opened server socket on port " + getTestPort());
+        } else {
+            getLogger().debug("[" + this.getClass().getName() + "] server socket already open on " +
+                serverSocket.getLocalPort());
+        }
     }
 
     protected abstract int getFirstConnectionTimeout();
@@ -108,11 +132,13 @@ public abstract class AbstractSocketThread
 
     private void closeServerSocket()
     {
+        getLogger().debug(getClass() + " is tearing down server socket");
         if ( serverSocket != null )
         {
             try
             {
                 serverSocket.close();
+                getLogger().debug(getClass() + " closed server socket");
             }
             catch ( IOException e )
             {
@@ -144,6 +170,8 @@ public abstract class AbstractSocketThread
 
     protected void closeClientSocket()
     {
+        getLogger().debug(getClass() + " is tearing down client socket");
+
         // Close the output stream.
         if ( out != null )
         {
@@ -176,6 +204,7 @@ public abstract class AbstractSocketThread
             try
             {
                 clientSocket.close();
+                getLogger().debug(getClass() + " closed client socket");
             }
             catch ( IOException e )
             {
@@ -204,7 +233,9 @@ public abstract class AbstractSocketThread
     {
         super.reset();
 
-        this.serverSocket = null;
+        if (shouldTearDownServerSocketAfterRun()) {
+            this.serverSocket = null;
+        }
         this.clientSocket = null;
         this.in = null;
         this.out = null;

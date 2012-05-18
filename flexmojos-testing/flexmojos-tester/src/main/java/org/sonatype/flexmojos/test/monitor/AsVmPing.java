@@ -53,7 +53,8 @@ public class AsVmPing
     private int firstConnectionTimeout;
 
     private int testTimeout;
-    private Document testSuites;
+
+    private Document testSpecs;
 
 
     @Override
@@ -106,8 +107,11 @@ public class AsVmPing
 
                     String testSuitesXmlStr = testListBuilder.toString();
                     getLogger().debug( "testSuitesXmlStr: " + testSuitesXmlStr );
-                    testSuites = convertToDocument(testListBuilder.toString());
-                    getLogger().debug( "testSuites.toString(): " + testSuites.toString());
+                    testSpecs = convertToDocument(testListBuilder.toString());
+                    getLogger().debug("testSuites.toString(): " + testSpecs.toString());
+
+                    status = ThreadStatus.DONE;
+                    return;
                 }
 
                 else if ( FINISHED.equals( result ) )
@@ -192,7 +196,11 @@ public class AsVmPing
         return firstConnectionTimeout;
     }
 
-    public Document getTestSuites() {
-        return testSuites;
+    public Document getTestSpecs() {
+        return testSpecs;
+    }
+
+    public void clearTestSpecs() {
+        testSpecs = null;
     }
 }

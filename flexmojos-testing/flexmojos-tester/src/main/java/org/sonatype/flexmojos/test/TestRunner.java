@@ -23,9 +23,11 @@ package org.sonatype.flexmojos.test;
 import java.util.List;
 
 import org.sonatype.flexmojos.test.launcher.LaunchFlashPlayerException;
+import org.w3c.dom.Document;
 
 public interface TestRunner
 {
     List<String> run( TestRequest testRequest )
         throws TestRunnerException, LaunchFlashPlayerException;
+    public Document getAndClearTestSpecs();
 }

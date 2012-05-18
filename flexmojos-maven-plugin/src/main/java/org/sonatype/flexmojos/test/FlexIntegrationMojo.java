@@ -20,6 +20,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.sonatype.flexmojos.test.launcher.LaunchFlashPlayerException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +41,6 @@ import java.util.List;
 public class FlexIntegrationMojo
     extends FlexTestMojo
 {
-
     /**
      * Can be of type <code>&lt;argument&gt;</code>
      *
@@ -76,12 +78,15 @@ public class FlexIntegrationMojo
     private int firstConnectionTimeout;
 
     /**
-     * @component role="org.sonatype.flexmojos.test.TestRunner"
+     * @component role="org.sonatype.flexmojos.test.IntegrationTestRunner"
      */
-    private TestRunner testRunner;
+    private IntegrationTestRunner testRunner;
 
     private static final String EXECUTE_TEST_COMMAND = "EXECUTE_TEST";
     private static final String EXECUTE_ALL_TESTS_COMMAND = "EXECUTE_ALL_TESTS";
+    private static final String LIST_TEST_CLASSES_COMMAND = "LIST_TEST_CLASSES";
+
+    private static final String EMPTY_TEST_CONFIG = "{\"functionalTestClassName\":\"\",\"parameters\":null}";
 
     /**
      * Create a server socket for receiving the test reports from FlexUnit. We read the test reports inside of a Thread.
@@ -96,16 +101,50 @@ public class FlexIntegrationMojo
             return;
         }
 
-        //runTest(getListTestsConfig()); //TODO soon -VITO
-        runTests(prepareToRunTests());
+        testRunner.disableAutomaticTearDownOfSocketThreads();
+
+        List<String> testConfigs = prepareToRunTests();
+        giveTestCommandTimeToClose();
+        runTests(testConfigs);
+
+        testRunner.tearDownSocketThreads();
     }
 
-    private List<String> prepareToRunTests() {
+    private void giveTestCommandTimeToClose() {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            getLog().info(e);
+        }
+    }
+
+    private List<String> prepareToRunTests() throws MojoExecutionException {
+
+        try{
+            writeTestToRunFile(EMPTY_TEST_CONFIG, LIST_TEST_CLASSES_COMMAND);
+            launchTest();
+        }
+        catch( LaunchFlashPlayerException e ){
+            throw new MojoExecutionException(
+                "Failed to launch browser.  Java probably could not find (" +
+                    browserCommand + ")." +
+                    "\n\t\tMake sure browser is available on PATH" +
+                    "\n\t\tor use -Dbrowser.command=${browser executable}",
+                e);
+        }
+        catch( Exception e ){
+            throw new MojoExecutionException(
+                "Failed to get test class list.",
+                e);
+        }
+
+        Document testSpecs = testRunner.getAndClearTestSpecs();
+        final NodeList testSpecNodes = testSpecs.getElementsByTagName("testspec");
         final List<String> testsToRun = new ArrayList<String>();
-        testsToRun.add("{\"functionalTestClassName\":\"\",\"parameters\":null}"); //for now run all
-        //testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.sanity::BasicSanityTest\",\"parameters\":null}");
-        //        testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.fastFunctional::FastFunctionalOne\",\"parameters\":null}");
-        //        testsToRun.add("{\"functionalTestClassName\":\"com.shutterfly.test.functional.custompath.fastFunctional::FastFunctionalTwo\",\"parameters\":null}");
+        for(int currentNodeIndex=0; currentNodeIndex< testSpecNodes.getLength(); currentNodeIndex++){
+            Node testSpecNode = testSpecNodes.item(currentNodeIndex);
+            testsToRun.add(testSpecNode.getTextContent());
+        }
         return testsToRun;
     }
 
@@ -115,6 +154,7 @@ public class FlexIntegrationMojo
         for(String testToRun : testConfigs){
             try{
                 runTest(testToRun);
+                giveTestCommandTimeToClose();
             }
             catch ( TestRunnerException e )
             {
@@ -138,7 +178,7 @@ public class FlexIntegrationMojo
 
     private void runTest(String testConfig) throws TestRunnerException,
         LaunchFlashPlayerException, MojoExecutionException, IOException {
-        writeTestToRunFile(testConfig, EXECUTE_ALL_TESTS_COMMAND);
+        writeTestToRunFile(testConfig, EXECUTE_TEST_COMMAND);
         launchTest();
     }
 

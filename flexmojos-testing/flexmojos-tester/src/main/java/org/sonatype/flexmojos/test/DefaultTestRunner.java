@@ -31,6 +31,7 @@ import org.sonatype.flexmojos.test.launcher.AsVmLauncher;
 import org.sonatype.flexmojos.test.launcher.LaunchFlashPlayerException;
 import org.sonatype.flexmojos.test.monitor.AsVmPing;
 import org.sonatype.flexmojos.test.monitor.ResultHandler;
+import org.w3c.dom.Document;
 
 @Component( role = TestRunner.class )
 public class DefaultTestRunner
@@ -47,21 +48,21 @@ public class DefaultTestRunner
     @Requirement( role = AsVmLauncher.class )
     private AsVmLauncher launcher;
 
+    protected void disableAutomaticTearDownOfSocketThreads(){
+        pinger.setShouldTearDownAfterRun(false);
+        resultHandler.setShouldTearDownAfterRun(false);
+    }
+
+    public void tearDownSocketThreads() {
+        pinger.tearDownServerSocket();
+        resultHandler.tearDownServerSocket();
+        stop(pinger, resultHandler);
+    }
+
     public List<String> run( TestRequest testRequest )
         throws TestRunnerException, LaunchFlashPlayerException
     {
-        File fileUnderTest = testRequest.getFileUnderTest();
-        if ( fileUnderTest == null )
-        {
-            throw new TestRunnerException( "Target file for test not defined: " + fileUnderTest);
-        }
-
-        if ( !fileUnderTest.isFile() )
-        {
-            throw new TestRunnerException( "Target file for test not found: " + fileUnderTest );
-        }
-
-        getLogger().info( "Running tests " + fileUnderTest + " using " + testRequest.getTestCommand());
+        validateTestIsReadyToBegin(testRequest);
 
         try
         {
@@ -78,17 +79,14 @@ public class DefaultTestRunner
             // Wait until the tests are complete.
             while ( true )
             {
-                Date now = new Date();
-                getLogger().debug( "[MOJO] current time (" + now.getTime() + ") " + now);
-                getLogger().debug( "[MOJO] launcher " + launcher.getStatus() );
-                getLogger().debug( "[MOJO] pinger " + pinger.getStatus() );
-                getLogger().debug( "[MOJO] resultHandler " + resultHandler.getStatus() );
-                getLogger().debug( "[MOJO] ------------- " );
+                logCurrentState();
+
+
 
                 if ( hasError( launcher, pinger, resultHandler ) )
                 {
                     Throwable executionError = getError( launcher, pinger, resultHandler );
-                    throw new TestRunnerException( executionError.getMessage() + fileUnderTest, executionError );
+                    throw new TestRunnerException( executionError.getMessage() + testRequest.getFileUnderTest(), executionError );
                 }
 
                 if ( testRequest.isTestCommandExitsWhenTestCompletes() ) {
@@ -129,6 +127,37 @@ public class DefaultTestRunner
         }
     }
 
+    private void logCurrentState() {
+        Date now = new Date();
+        getLogger().debug( "[MOJO] current time (" + now.getTime() + ") " + now);
+        getLogger().debug( "[MOJO] launcher " + launcher.getStatus() );
+        getLogger().debug( "[MOJO] pinger " + pinger.getStatus() );
+        getLogger().debug( "[MOJO] resultHandler " + resultHandler.getStatus() );
+        getLogger().debug( "[MOJO] ------------- " );
+    }
+
+    private void validateTestIsReadyToBegin(TestRequest testRequest) throws TestRunnerException {
+        File fileUnderTest = testRequest.getFileUnderTest();
+        if ( fileUnderTest == null )
+        {
+            throw new TestRunnerException( "Target file for test not defined: " + fileUnderTest);
+        }
+
+        if ( !fileUnderTest.isFile() )
+        {
+            throw new TestRunnerException( "Target file for test not found: " + fileUnderTest );
+        }
+
+        getLogger().info( "Running tests " + fileUnderTest + " using " + testRequest.getTestCommand());
+    }
+
+    public Document getAndClearTestSpecs() {
+        final Document testSpecs = pinger.getTestSpecs();
+        pinger.clearTestSpecs();
+        return testSpecs;
+
+    }
+
     private void sleep( int time )
     {
         try
@@ -160,7 +189,7 @@ public class DefaultTestRunner
         }
     }
 
-    private boolean hasDone( ControlledThread... threads )
+    protected boolean hasDone( ControlledThread... threads )
     {
         for ( ControlledThread controlledThread : threads )
         {
@@ -178,6 +207,8 @@ public class DefaultTestRunner
         {
             if ( controlledThread.getError() != null )
             {
+                getLogger().error("error encountered for ControlledThread: " + controlledThread.getClass() +
+                    " error: " + controlledThread.getError());
                 return controlledThread.getError();
             }
         }
