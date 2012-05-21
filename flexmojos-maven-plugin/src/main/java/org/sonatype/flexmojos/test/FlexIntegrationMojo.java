@@ -122,7 +122,7 @@ public class FlexIntegrationMojo
         getLog().debug("prepareToRunTests");
         try{
             writeTestToRunFile(EMPTY_TEST_CONFIG, LIST_TEST_CLASSES_COMMAND);
-            launchTest();
+            launchTest(true);
         }
         catch( LaunchFlashPlayerException e ){
             throw new MojoExecutionException(
@@ -195,6 +195,10 @@ public class FlexIntegrationMojo
     }
 
     private void launchTest() throws TestRunnerException, LaunchFlashPlayerException, MojoExecutionException {
+        launchTest(false);
+    }
+
+    private void launchTest(boolean skipReport) throws TestRunnerException, LaunchFlashPlayerException, MojoExecutionException {
         getLog().debug("launchTest");
         TestRequest testRequest = new TestRequest();
         testRequest.setTestControlPort(testControlPort);
