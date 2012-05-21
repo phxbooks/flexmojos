@@ -119,7 +119,7 @@ public class FlexIntegrationMojo
     }
 
     private List<String> prepareToRunTests() throws MojoExecutionException {
-
+        getLog().debug("prepareToRunTests");
         try{
             writeTestToRunFile(EMPTY_TEST_CONFIG, LIST_TEST_CLASSES_COMMAND);
             launchTest();
@@ -178,17 +178,24 @@ public class FlexIntegrationMojo
 
     private void runTest(String testConfig) throws TestRunnerException,
         LaunchFlashPlayerException, MojoExecutionException, IOException {
+        getLog().debug("runTest");
         writeTestToRunFile(testConfig, EXECUTE_TEST_COMMAND);
         launchTest();
     }
 
     private void writeTestToRunFile(String testConfig, String testCommand) throws IOException {
+        getLog().debug("writeTestToRunFile");
         String config = "var functionalTestConfig = " + testConfig + ";\n";
         config += "var functionalTestCommand = \"" + testCommand + "\";\n";
-        FileUtils.writeStringToFile(new File(project.getBuild().getDirectory(),"functionalTestConfig.js"), config);
+
+        File functionalTestConfigFile = new File(project.getBuild().getDirectory(), "functionalTestConfig.js");
+        FileUtils.writeStringToFile(functionalTestConfigFile, config);
+
+        getLog().debug("wrote: " + config);
     }
 
     private void launchTest() throws TestRunnerException, LaunchFlashPlayerException, MojoExecutionException {
+        getLog().debug("launchTest");
         TestRequest testRequest = new TestRequest();
         testRequest.setTestControlPort(testControlPort);
         testRequest.setTestPort(testPort);
