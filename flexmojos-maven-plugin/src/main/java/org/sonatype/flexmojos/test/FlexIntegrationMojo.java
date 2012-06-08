@@ -186,6 +186,7 @@ public class FlexIntegrationMojo
     private void writeTestToRunFile(String testConfig, String testCommand) throws IOException {
         getLog().debug("writeTestToRunFile");
         String config = "var functionalTestConfig = " + testConfig + ";\n";
+        getLog().info("Executing test with config:" + testConfig);
         config += "var functionalTestCommand = \"" + testCommand + "\";\n";
 
         File functionalTestConfigFile = new File(project.getBuild().getDirectory(), "functionalTestConfig.js");
